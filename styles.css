@@ -188,6 +188,57 @@ body {
     font-weight: bold;
 }
 
+/* AI Insights Styles */
+.ai-insights {
+    padding: 0 20px 20px 20px;
+}
+
+.prediction-card, .warning-card, .current-data {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.prediction-card h4, .warning-card h4, .current-data h4 {
+    color: #4a9eff;
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+}
+
+.prediction-card p, .warning-card p, .current-data p {
+    color: #cccccc;
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.prediction-card .value, .warning-card .value, .current-data .value {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Risk level colors */
+.prediction-card.high .value.high,
+.warning-card.high .value.high {
+    color: #ff6b6b;
+}
+
+.prediction-card.medium .value.medium,
+.warning-card.medium .value.medium {
+    color: #ffd93d;
+}
+
+.prediction-card.low .value.low,
+.warning-card.low .value.low {
+    color: #6bcf7f;
+}
+
+.loading {
+    padding: 20px;
+    text-align: center;
+    color: #cccccc;
+}
+
 /* Location image styles */
 .location-image {
     margin: -20px -20px 20px -20px;
