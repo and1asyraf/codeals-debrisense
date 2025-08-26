@@ -6,6 +6,14 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 import joblib
 import os
+from datetime import datetime, timedelta
+import threading
+import time
+
+# Import our custom systems
+from sensor_system import sensor_system
+from weather_system import weather_system
+from enhanced_ai import enhanced_ai
 
 app = Flask(__name__)
 CORS(app)
@@ -54,6 +62,14 @@ def load_or_create_models():
     return debris_predictor, scaler
 
 debris_predictor, scaler = load_or_create_models()
+
+# Set up enhanced AI with our models
+enhanced_ai.set_models(debris_predictor, scaler)
+
+# Global variables for scheduled updates
+last_sensor_update = datetime.now()
+last_weather_update = datetime.now()
+next_update_time = datetime.now() + timedelta(hours=2)  # Update every 2 hours
 
 # Serve the main dashboard
 @app.route('/')
@@ -202,6 +218,137 @@ def get_all_locations():
         return jsonify({'locations': locations})
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+# New enhanced endpoints
+@app.route('/get_sensor_data/<river_name>', methods=['GET'])
+def get_sensor_data(river_name):
+    """Get real-time sensor data for a specific river"""
+    try:
+        sensor_data = sensor_system.get_sensor_data_for_river(river_name)
+        if sensor_data:
+            return jsonify(sensor_data)
+        else:
+            return jsonify({'error': 'River not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/get_weather_data/<river_name>', methods=['GET'])
+def get_weather_data(river_name):
+    """Get weather data for a specific river"""
+    try:
+        # Get coordinates from CSV
+        df = pd.read_csv('data/data.csv')
+        river_data = df[df['name'].str.contains(river_name, case=False, na=False)]
+        
+        if river_data.empty:
+            return jsonify({'error': 'River not found'}), 404
+        
+        lat = river_data.iloc[0]['latitude']
+        lng = river_data.iloc[0]['longitude']
+        
+        weather_data = weather_system.get_weather_for_river(river_name, (lat, lng))
+        return jsonify(weather_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/get_enhanced_predictions/<river_name>', methods=['GET'])
+def get_enhanced_predictions(river_name):
+    """Get enhanced AI predictions for multiple timeframes"""
+    try:
+        # Get sensor data
+        sensor_data = sensor_system.get_sensor_data_for_river(river_name)
+        
+        # Get weather data
+        df = pd.read_csv('data/data.csv')
+        river_data = df[df['name'].str.contains(river_name, case=False, na=False)]
+        
+        if river_data.empty:
+            return jsonify({'error': 'River not found'}), 404
+        
+        lat = river_data.iloc[0]['latitude']
+        lng = river_data.iloc[0]['longitude']
+        weather_data = weather_system.get_weather_for_river(river_name, (lat, lng))
+        
+        # Get predictions for multiple timeframes
+        predictions = enhanced_ai.get_multiple_predictions(sensor_data, weather_data)
+        
+        return jsonify({
+            'river_name': river_name,
+            'timestamp': datetime.now().isoformat(),
+            'predictions': predictions,
+            'sensor_data': sensor_data,
+            'weather_data': weather_data
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/get_update_schedule', methods=['GET'])
+def get_update_schedule():
+    """Get information about scheduled updates"""
+    global last_sensor_update, last_weather_update, next_update_time
+    
+    return jsonify({
+        'last_sensor_update': last_sensor_update.isoformat(),
+        'last_weather_update': last_weather_update.isoformat(),
+        'next_update': next_update_time.isoformat(),
+        'update_interval_hours': 2,
+        'sensor_update_interval_minutes': 5
+    })
+
+@app.route('/get_weather_api_status', methods=['GET'])
+def get_weather_api_status():
+    """Get weather API configuration status"""
+    return jsonify(weather_system.get_api_key_instructions())
+
+@app.route('/test_sensors', methods=['GET'])
+def test_sensors():
+    """Test endpoint to verify sensor system is working"""
+    try:
+        all_sensor_data = sensor_system.get_all_sensor_data()
+        return jsonify({
+            'status': 'success',
+            'sensors': all_sensor_data,
+            'message': 'Sensor system is working correctly'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Sensor system has an issue'
+        }), 500
+
+@app.route('/test_weather/<river_name>', methods=['GET'])
+def test_weather(river_name):
+    """Test endpoint to see what weather data is being returned"""
+    try:
+        # Get coordinates from CSV
+        df = pd.read_csv('data/data.csv')
+        river_data = df[df['name'].str.contains(river_name, case=False, na=False)]
+        
+        if river_data.empty:
+            return jsonify({'error': 'River not found'}), 404
+        
+        lat = river_data.iloc[0]['latitude']
+        lng = river_data.iloc[0]['longitude']
+        
+        # Test current weather
+        current_weather = weather_system.get_current_weather(lat, lng)
+        
+        # Test forecast
+        forecast_weather = weather_system.get_weather_forecast(lat, lng, days=1)
+        
+        return jsonify({
+            'river_name': river_name,
+            'coordinates': (lat, lng),
+            'current_weather_raw': current_weather,
+            'forecast_weather_raw': forecast_weather,
+            'api_key_status': weather_system.api_key != "YOUR_WEATHER_API_KEY_HERE"
+        })
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'traceback': str(e.__traceback__)
+        }), 500
 
 if __name__ == '__main__':
     print("🚀 Debrisense AI Dashboard Starting...")
