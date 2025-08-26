@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debrisense Dashboard</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">Debrisense</a>
+        <ul class="navbar-nav">
+            <li><a href="#" class="nav-item">Dashboard</a></li>
+            <li><a href="#" class="nav-item">Analytics</a></li>
+            <li><a href="#" class="nav-item">Reports</a></li>
+            <li><a href="#" class="nav-item">Settings</a></li>
+        </ul>
+    </nav>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-content">
+            <button class="close-btn" onclick="toggleSidebar()">×</button>
+            <div id="location-info">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
