@@ -97,7 +97,7 @@ async function showEnhancedLocationInfo(locationData) {
         </div>
         
         <div class="loading">
-            <p>🔄 Loading real-time data...</p>
+            <p>Loading real-time data...</p>
         </div>
     `;
     
@@ -172,7 +172,7 @@ function updateSidebarWithEnhancedData(locationData, sensorData, weatherData, pr
             <!-- Charts Section -->
             <div class="data-section">
                 <div class="section-header" onclick="toggleSection('charts-section')">
-                    <h4>📊 Data Trends</h4>
+                    <h4>Data Trends</h4>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div id="charts-section" class="section-content">
@@ -366,18 +366,24 @@ function generatePredictionsHTML(predictions) {
             'very_low': '#4a9eff'
         };
         
+        // Format risk level text (replace underscores with spaces and capitalize properly)
+        const riskLevelText = prediction.risk_level.replace(/_/g, ' ').toUpperCase();
+        
+        // Show only 6h prediction by default, hide others
+        const displayStyle = timeframe === '6h' ? 'block' : 'none';
+        
         html += `
-            <div class="prediction-card ${prediction.risk_level}" data-timeframe="${timeframe}">
+            <div class="prediction-card ${prediction.risk_level}" data-timeframe="${timeframe}" style="display: ${displayStyle}">
                 <div class="prediction-header">
                     <h5>${timeframe} Prediction</h5>
                     <span class="confidence">${Math.round(prediction.confidence * 100)}% confidence</span>
                 </div>
                 <div class="prediction-body">
                     <div class="prediction-value" style="color: ${riskColors[prediction.risk_level]}">
-                        ${prediction.prediction} debris level
+                        ${prediction.prediction} kg/m³
                     </div>
                     <div class="risk-level ${prediction.risk_level}">
-                        ${prediction.risk_level.toUpperCase()} RISK
+                        ${riskLevelText} RISK
                     </div>
                 </div>
             </div>
@@ -654,7 +660,6 @@ function setTheme(theme) {
         updateChartColors('light');
     } else {
         document.body.classList.remove('light-mode');
-        themeIcon.textContent = '☀️';
         themeText.textContent = 'Light Mode';
         
         // Switch to dark map tiles
