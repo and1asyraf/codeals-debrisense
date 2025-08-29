@@ -18,11 +18,14 @@ const map = L.map('map', {
 });
 
 // Add lighter dark mode tile layer with labels
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+window.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 19
 }).addTo(map);
+
+// Store map globally for theme switching
+window.map = map;
 
 // Create custom donut marker for rivers
 const donutIcon = L.divIcon({
@@ -133,7 +136,7 @@ function updateSidebarWithEnhancedData(locationData, sensorData, weatherData, pr
             <!-- Sensor Data Section -->
             <div class="data-section">
                 <div class="section-header" onclick="toggleSection('sensor-section')">
-                    <h4>📡 Real-time Sensors</h4>
+                    <h4>Real-time Sensors</h4>
                     <span class="toggle-icon">▼</span>
                     <span class="update-time">Updated: ${formatTimeAgo(sensorData.timestamp)}</span>
                 </div>
@@ -145,7 +148,7 @@ function updateSidebarWithEnhancedData(locationData, sensorData, weatherData, pr
             <!-- Weather Data Section -->
             <div class="data-section">
                 <div class="section-header" onclick="toggleSection('weather-section')">
-                    <h4>🌤️ Weather Forecast</h4>
+                    <h4>Weather Forecast</h4>
                     <span class="toggle-icon">▼</span>
                     <span class="update-time">Updated: ${formatTimeAgo(weatherData.timestamp)}</span>
                 </div>
@@ -157,7 +160,7 @@ function updateSidebarWithEnhancedData(locationData, sensorData, weatherData, pr
             <!-- AI Predictions Section -->
             <div class="data-section">
                 <div class="section-header" onclick="toggleSection('predictions-section')">
-                    <h4>🤖 AI Predictions</h4>
+                    <h4>AI Predictions</h4>
                     <span class="toggle-icon">▼</span>
                     <span class="update-time">Updated: ${formatTimeAgo(predictions.timestamp)}</span>
                 </div>
@@ -207,7 +210,7 @@ function generateSensorDataHTML(sensorData) {
         <div class="sensor-grid">
             <div class="sensor-item ${sensorData.water_level ? 'online' : 'offline'}">
                 <div class="sensor-header">
-                    <span>💧 Water Level</span>
+                    <span>Water Level</span>
                     <span class="status">${statusIcons[sensorData.sensor_status?.water_level || 'offline']}</span>
                 </div>
                 <div class="sensor-value">${sensorData.water_level || 'N/A'} m</div>
@@ -215,7 +218,7 @@ function generateSensorDataHTML(sensorData) {
             
             <div class="sensor-item ${sensorData.flow_rate ? 'online' : 'offline'}">
                 <div class="sensor-header">
-                    <span>🌊 Flow Rate</span>
+                    <span>Flow Rate</span>
                     <span class="status">${statusIcons[sensorData.sensor_status?.flow_rate || 'offline']}</span>
                 </div>
                 <div class="sensor-value">${sensorData.flow_rate || 'N/A'} m³/s</div>
@@ -223,7 +226,7 @@ function generateSensorDataHTML(sensorData) {
             
             <div class="sensor-item ${sensorData.tide_level ? 'online' : 'offline'}">
                 <div class="sensor-header">
-                    <span>🌊 Tide Level</span>
+                    <span>Tide Level</span>
                     <span class="status">${statusIcons[sensorData.sensor_status?.tide_level || 'offline']}</span>
                 </div>
                 <div class="sensor-value">${sensorData.tide_level || 'N/A'} m</div>
@@ -250,38 +253,43 @@ function generateWeatherDataHTML(weatherData) {
     console.log('Current weather data:', current); // Debug log
     
     // Handle both real API data and mock data structures
-    const temp = current.temp_c || current.temp || 'N/A';
-    const rainfall = current.precip_mm || current.rainfall || '0';
-    const windSpeed = current.wind_kph || current.wind_speed || 'N/A';
-    const humidity = current.humidity || 'N/A';
+    console.log('Current weather object:', current); // Debug current weather object
+    
+    const temp = current.temp_c || current.temp || current.current?.temp_c || 'N/A';
+    const rainfall = current.precip_mm || current.rainfall || current.current?.precip_mm || '0';
+    const windSpeed = current.wind_kph || current.wind_speed || current.current?.wind_kph || 'N/A';
+    const humidity = current.humidity || current.current?.humidity || 'N/A';
+    
+    console.log('Extracted current values:', { temp, rainfall, windSpeed, humidity }); // Debug extracted values
     
     const forecast = weatherData.forecast || [];
+    console.log('Forecast data:', forecast); // Debug log
     
     let html = noteHtml + `
         <div class="current-weather">
             <h5>Current Conditions</h5>
             <div class="weather-grid">
                 <div class="weather-item">
-                    <span>🌡️ Temperature</span>
+                    <span>Temperature</span>
                     <span class="value">${temp}°C</span>
                 </div>
                 <div class="weather-item">
-                    <span>💧 Rainfall</span>
+                    <span>Rainfall</span>
                     <span class="value">${rainfall} mm</span>
                 </div>
                 <div class="weather-item">
-                    <span>💨 Wind Speed</span>
+                    <span>Wind Speed</span>
                     <span class="value">${windSpeed} km/h</span>
                 </div>
                 <div class="weather-item">
-                    <span>💧 Humidity</span>
+                    <span>Humidity</span>
                     <span class="value">${humidity}%</span>
                 </div>
             </div>
         </div>
     `;
     
-    if (forecast.length > 0) {
+    if (forecast && forecast.length > 0) {
         html += `
             <div class="forecast-weather">
                 <h5>24-Hour Forecast</h5>
@@ -289,13 +297,23 @@ function generateWeatherDataHTML(weatherData) {
         `;
         
         forecast.slice(0, 2).forEach(day => {
+            console.log('Processing forecast day:', day); // Debug log
+            console.log('Day data structure:', JSON.stringify(day, null, 2)); // Detailed debug
+            
+            // Extract values with multiple fallback options
+            const rainfall = day.total_rainfall || day.day?.totalprecip_mm || day.precip_mm || 0;
+            const windSpeed = day.max_wind_speed || day.day?.maxwind_kph || day.wind_kph || 0;
+            const temperature = day.avg_temp || day.day?.avgtemp_c || day.temp_c || 0;
+            
+            console.log('Extracted values:', { rainfall, windSpeed, temperature }); // Debug extracted values
+            
             html += `
                 <div class="forecast-day">
                     <div class="forecast-date">${formatDate(day.date)}</div>
                     <div class="forecast-data">
-                        <div>🌧️ ${day.total_rainfall || 0} mm</div>
-                        <div>💨 ${day.max_wind_speed || 0} km/h</div>
-                        <div>🌡️ ${day.avg_temp || 0}°C</div>
+                        <div>Rainfall: ${rainfall} mm</div>
+                        <div>Wind: ${windSpeed} km/h</div>
+                        <div>Temp: ${temperature}°C</div>
                     </div>
                 </div>
             `;
@@ -303,6 +321,13 @@ function generateWeatherDataHTML(weatherData) {
         
         html += `
                 </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="forecast-weather">
+                <h5>24-Hour Forecast</h5>
+                <p style="color: #cccccc; text-align: center; padding: 20px;">No forecast data available</p>
             </div>
         `;
     }
@@ -377,6 +402,11 @@ function initializeCharts(predictions) {
     const values = timeframes.map(tf => preds[tf]?.prediction || 0);
     const confidences = timeframes.map(tf => (preds[tf]?.confidence || 0) * 100);
     
+    // Get current theme colors
+    const isLightMode = document.body.classList.contains('light-mode');
+    const textColor = isLightMode ? '#333' : '#ffffff';
+    const gridColor = isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+    
     charts.predictionChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -402,25 +432,47 @@ function initializeCharts(predictions) {
             scales: {
                 y: {
                     beginAtZero: true,
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
+                    },
                     title: {
                         display: true,
-                        text: 'Debris Level'
+                        text: 'Debris Level',
+                        color: textColor
                     }
                 },
                 y1: {
                     position: 'right',
                     beginAtZero: true,
                     max: 100,
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
+                    },
                     title: {
                         display: true,
-                        text: 'Confidence (%)'
+                        text: 'Confidence (%)',
+                        color: textColor
+                    }
+                },
+                x: {
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
                     }
                 }
             },
             plugins: {
                 legend: {
                     labels: {
-                        color: '#ffffff'
+                        color: textColor
                     }
                 }
             }
@@ -557,3 +609,105 @@ loadAllLocations();
 
 // Ensure map fills the available space
 map.invalidateSize();
+
+// Theme toggle functionality
+function initializeThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+    const themeText = themeToggle.querySelector('.theme-text');
+    
+    // Check for saved theme preference or default to dark
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(currentTheme);
+    
+    themeToggle.addEventListener('click', function() {
+        const newTheme = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+        setTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+}
+
+function setTheme(theme) {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+    const themeText = themeToggle.querySelector('.theme-text');
+    
+    if (theme === 'light') {
+        document.body.classList.add('light-mode');
+        themeIcon.textContent = '🌙';
+        themeText.textContent = 'Dark Mode';
+        
+        // Switch to light map tiles
+        if (window.map) {
+            // Remove dark tile layer
+            if (window.darkTileLayer) {
+                window.map.removeLayer(window.darkTileLayer);
+            }
+            
+            // Add light tile layer
+            window.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(window.map);
+        }
+        
+        // Update chart colors for light mode
+        updateChartColors('light');
+    } else {
+        document.body.classList.remove('light-mode');
+        themeIcon.textContent = '☀️';
+        themeText.textContent = 'Light Mode';
+        
+        // Switch to dark map tiles
+        if (window.map) {
+            // Remove light tile layer
+            if (window.lightTileLayer) {
+                window.map.removeLayer(window.lightTileLayer);
+            }
+            
+            // Add dark tile layer
+            window.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© CARTO'
+            }).addTo(window.map);
+        }
+        
+        // Update chart colors for dark mode
+        updateChartColors('dark');
+    }
+}
+
+function updateChartColors(theme) {
+    const textColor = theme === 'light' ? '#333' : '#ffffff';
+    const gridColor = theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+    
+    // Update existing charts
+    Object.values(charts).forEach(chart => {
+        if (chart && chart.options) {
+            // Update scales
+            if (chart.options.scales) {
+                Object.values(chart.options.scales).forEach(scale => {
+                    if (scale.grid) {
+                        scale.grid.color = gridColor;
+                    }
+                    if (scale.ticks) {
+                        scale.ticks.color = textColor;
+                    }
+                    if (scale.title) {
+                        scale.title.color = textColor;
+                    }
+                });
+            }
+            
+            // Update legend
+            if (chart.options.plugins && chart.options.plugins.legend) {
+                chart.options.plugins.legend.labels.color = textColor;
+            }
+            
+            chart.update();
+        }
+    });
+}
+
+// Initialize theme toggle when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeThemeToggle();
+});

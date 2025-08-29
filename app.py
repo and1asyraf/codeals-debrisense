@@ -337,11 +337,15 @@ def test_weather(river_name):
         # Test forecast
         forecast_weather = weather_system.get_weather_forecast(lat, lng, days=1)
         
+        # Test processed weather data
+        processed_weather = weather_system.get_weather_for_river(river_name, (lat, lng))
+        
         return jsonify({
             'river_name': river_name,
             'coordinates': (lat, lng),
             'current_weather_raw': current_weather,
             'forecast_weather_raw': forecast_weather,
+            'processed_weather': processed_weather,
             'api_key_status': weather_system.api_key != "YOUR_WEATHER_API_KEY_HERE"
         })
     except Exception as e:
@@ -351,8 +355,8 @@ def test_weather(river_name):
         }), 500
 
 if __name__ == '__main__':
-    print("🚀 Debrisense AI Dashboard Starting...")
-    print("📊 Dashboard: http://localhost:5000")
-    print("🤖 AI Backend: http://localhost:5000/predict_debris")
-    print("📸 Images: http://localhost:5000/data/image/")
+    print("Debrisense AI Dashboard Starting...")
+    print("Dashboard: http://localhost:5000")
+    print("AI Backend: http://localhost:5000/predict_debris")
+    print("Images: http://localhost:5000/data/image/")
     app.run(debug=True, port=5000)

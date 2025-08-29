@@ -7,7 +7,7 @@ class WeatherSystem:
     def __init__(self):
         # You'll need to get a free API key from https://www.weatherapi.com/
         # Sign up and get your free API key (1000 requests per month)
-        self.api_key = "84b6782ee30a4551acc83954252608"  # Your WeatherAPI.com key
+        self.api_key = "84b6782ee30a4551acc83954252608"  # Your real WeatherAPI.com key
         self.base_url = "http://api.weatherapi.com/v1"
         self.cache = {}
         self.cache_duration = 3600  # 1 hour cache
@@ -39,7 +39,7 @@ class WeatherSystem:
             time.sleep(self.api_call_interval - (current_time - self.last_api_call))
         
         try:
-            url = f"{self.base_url}/{endpoint}"
+            url = f"{self.base_url}/{endpoint}" 
             params['key'] = self.api_key
             
             response = requests.get(url, params=params, timeout=10)
@@ -165,15 +165,28 @@ class WeatherSystem:
         """Get weather data for a specific river location"""
         lat, lng = coordinates
         
+        print(f"Getting weather for {river_name} at coordinates {lat}, {lng}")
+        
         # Get current weather
         current_weather = self.get_current_weather(lat, lng)
+        print(f"Current weather result: {current_weather}")
         
         # Get forecast
         forecast_weather = self.get_weather_forecast(lat, lng, days=2)
+        print(f"Forecast weather result: {forecast_weather}")
         
-        # If API key not configured, provide mock data
-        if current_weather.get('error') and 'API key not configured' in str(current_weather.get('error')):
-            return self.get_mock_weather_data(river_name, coordinates)
+        # Check if we got valid forecast data
+        if 'error' in forecast_weather:
+            print(f"Forecast error: {forecast_weather['error']}")
+            return {"error": f"Forecast failed: {forecast_weather['error']}"}
+        
+        # Extract forecast data in the correct format
+        extracted_forecast = self.extract_forecast_data(forecast_weather)
+        
+        # If extraction failed, return error
+        if 'error' in extracted_forecast:
+            print(f"Extraction error: {extracted_forecast['error']}")
+            return {"error": f"Data extraction failed: {extracted_forecast['error']}"}
         
         # Extract and combine data
         result = {
@@ -181,7 +194,7 @@ class WeatherSystem:
             'coordinates': coordinates,
             'timestamp': datetime.now().isoformat(),
             'current': current_weather,
-            'forecast': self.extract_forecast_data(forecast_weather)
+            'forecast': extracted_forecast.get('forecast', [])  # Use the forecast array directly
         }
         
         return result
@@ -189,6 +202,8 @@ class WeatherSystem:
     def get_mock_weather_data(self, river_name, coordinates):
         """Provide realistic mock weather data when API is not available"""
         import random
+        
+        print(f"Using mock weather data for {river_name}")  # Debug log
         
         # Generate realistic mock data based on Malaysian climate
         current_temp = random.uniform(25, 32)  # Malaysian temperature range
@@ -210,31 +225,19 @@ class WeatherSystem:
         mock_forecast = [
             {
                 'date': (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d'),
-                'day': {
-                    'maxtemp_c': round(current_temp + random.uniform(-2, 3), 1),
-                    'mintemp_c': round(current_temp - random.uniform(2, 5), 1),
-                    'avgtemp_c': round(current_temp + random.uniform(-1, 1), 1),
-                    'totalprecip_mm': round(random.uniform(0, 15), 1),
-                    'maxwind_kph': round(current_wind + random.uniform(0, 10), 1),
-                    'avghumidity': round(current_humidity + random.uniform(-10, 10)),
-                    'condition': {'text': 'Partly cloudy'}
-                }
+                'total_rainfall': round(random.uniform(0, 15), 1),
+                'max_wind_speed': round(current_wind + random.uniform(0, 10), 1),
+                'avg_temp': round(current_temp + random.uniform(-1, 1), 1)
             },
             {
                 'date': (datetime.now() + timedelta(days=2)).strftime('%Y-%m-%d'),
-                'day': {
-                    'maxtemp_c': round(current_temp + random.uniform(-3, 4), 1),
-                    'mintemp_c': round(current_temp - random.uniform(3, 6), 1),
-                    'avgtemp_c': round(current_temp + random.uniform(-2, 2), 1),
-                    'totalprecip_mm': round(random.uniform(0, 20), 1),
-                    'maxwind_kph': round(current_wind + random.uniform(0, 15), 1),
-                    'avghumidity': round(current_humidity + random.uniform(-15, 15)),
-                    'condition': {'text': 'Light rain'}
-                }
+                'total_rainfall': round(random.uniform(0, 20), 1),
+                'max_wind_speed': round(current_wind + random.uniform(0, 15), 1),
+                'avg_temp': round(current_temp + random.uniform(-2, 2), 1)
             }
         ]
         
-        return {
+        result = {
             'river_name': river_name,
             'coordinates': coordinates,
             'timestamp': datetime.now().isoformat(),
@@ -242,6 +245,9 @@ class WeatherSystem:
             'forecast': mock_forecast,
             'note': 'Using mock weather data (API key not configured)'
         }
+        
+        print(f"Mock weather result: {result}")  # Debug log
+        return result
 
 # Global weather system instance
 weather_system = WeatherSystem()
