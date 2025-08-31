@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DebriSense - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .credentials-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .credentials-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .credential-item {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">DebriSense</div>
+        <div class="subtitle">AI-Powered Marine Debris Intelligence Dashboard</div>
+        
+        <div class="credentials-box">
+            <div class="credentials-title">Demo Credentials:</div>
+            <div class="credential-item">Email: user@pinc.my</div>
+            <div class="credential-item">Password: 123456</div>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn">Login to Dashboard</button>
+        </form>
+
+        <div id="errorMessage" class="error-message">
+            Invalid credentials. Please try again.
+        </div>
+        
+        <div id="successMessage" class="success-message">
+            Login successful! Redirecting to dashboard...
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Hide any previous messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Check credentials
+            if (email === 'user@pinc.my' && password === '123456') {
+                // Show success message
+                successMessage.style.display = 'block';
+                
+                // Redirect to dashboard after 1.5 seconds
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            } else {
+                // Show error message
+                errorMessage.style.display = 'block';
+                
+                // Clear password field
+                document.getElementById('password').value = '';
+            }
+        });
+
+        // Auto-fill credentials for demo purposes (optional)
+        // Uncomment the lines below if you want to auto-fill the form
+        /*
+        window.addEventListener('load', function() {
+            document.getElementById('email').value = 'user@pinc.my';
+            document.getElementById('password').value = '123456';
+        });
+        */
+    </script>
+</body>
+</html>
