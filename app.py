@@ -71,8 +71,13 @@ last_sensor_update = datetime.now()
 last_weather_update = datetime.now()
 next_update_time = datetime.now() + timedelta(hours=2)  # Update every 2 hours
 
-# Serve the main dashboard
+# Serve the login page as default
 @app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
+
+# Serve the dashboard
+@app.route('/dashboard')
 def dashboard():
     return send_from_directory('.', 'dashboard.html')
 

@@ -10,7 +10,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-### 3. Access Dashboard
+### 3. Access Application
 - Open your browser
 - Go to: **http://localhost:5000**
-- Enjoy your enhanced AI-powered dashboard! 🚀
+- You'll see the login page first
+- Use credentials: **user@pinc.my** / **123456**
+- After login, you'll be redirected to the dashboard! 🚀
