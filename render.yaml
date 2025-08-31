@@ -1,12 +1,12 @@
 services:
   - type: web
-    name: debrisense-dashboard
+    name: debrisense-ai
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.16
+        value: 3.13.0
       - key: WEATHER_API_KEY
-        value: YOUR_WEATHER_API_KEY_HERE
+        value: 84b6782ee30a4551acc83954252608
         sync: false

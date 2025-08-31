@@ -361,11 +361,5 @@ def test_weather(river_name):
 
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV') == 'development'
-    
-    print("Debrisense AI Dashboard Starting...")
-    print(f"Dashboard: http://localhost:{port}")
-    print("AI Backend: http://localhost:5000/predict_debris")
-    print("Images: http://localhost:5000/data/image/")
-    app.run(debug=debug, host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))  # Render provides PORT env variable
+    app.run(host="0.0.0.0", port=port, debug=False)

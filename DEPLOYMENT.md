@@ -16,7 +16,8 @@ git push origin main
 ### 1.2 Verify Files
 Ensure these files are in your repository:
 - ✅ `app.py` (Flask application)
-- ✅ `requirements.txt` (Python dependencies)
+- ✅ `requirements.txt` (Python dependencies with pinned versions)
+- ✅ `Procfile` (Render process file)
 - ✅ `render.yaml` (Render configuration)
 - ✅ `.gitignore` (Git ignore rules)
 - ✅ `index.html` (Login page)
@@ -39,8 +40,8 @@ Ensure these files are in your repository:
 3. Select your DebriSense repository
 
 ### 2.3 Configure Service
-- **Name:** `debrisense-dashboard`
-- **Environment:** `Python 3`
+- **Name:** `debrisense-ai`
+- **Environment:** `Python 3.13.0`
 - **Build Command:** `pip install -r requirements.txt`
 - **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT`
 - **Plan:** Free (or choose paid for more resources)
@@ -91,8 +92,9 @@ Add these environment variables in Render dashboard:
 - Check Python version compatibility
 
 **App Won't Start:**
-- Verify `gunicorn` is in requirements.txt
-- Check start command syntax
+- Verify `Procfile` exists with correct syntax
+- Check `gunicorn` is in requirements.txt
+- Verify start command: `gunicorn app:app --bind 0.0.0.0:$PORT`
 - Review build logs for errors
 
 **Images Not Loading:**
